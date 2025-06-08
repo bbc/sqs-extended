@@ -22,30 +22,30 @@ Visit [https://bbc.github.io/sqs-extended/](https://bbc.github.io/sqs-extended/)
 ### Producer
 
 ```typescript
-import { SQSExtendedProducer } from 'sqs-extended';
+import { SQSExtendedProducer } from "sqs-extended";
 
 const producer = new SQSExtendedProducer({
-  queueUrl: 'https://sqs.us-east-1.amazonaws.com/123456789012/my-queue',
-  s3Bucket: 'my-large-payload-bucket'
+  queueUrl: "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
+  s3Bucket: "my-large-payload-bucket",
 });
 
 await producer.send({
-  id: 'my-message-id',
-  body: largePayloadObject
+  id: "my-message-id",
+  body: largePayloadObject,
 });
 ```
 
 ### Consumer
 
 ```typescript
-import { SQSExtendedConsumer } from 'sqs-extended';
+import { SQSExtendedConsumer } from "sqs-extended";
 
 const consumer = new SQSExtendedConsumer({
-  queueUrl: 'https://sqs.us-east-1.amazonaws.com/123456789012/my-queue',
-  s3Bucket: 'my-large-payload-bucket',
+  queueUrl: "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
+  s3Bucket: "my-large-payload-bucket",
   handleMessage: async (message) => {
-    console.log('Payload:', message.body);
-  }
+    console.log("Payload:", message.body);
+  },
 });
 
 consumer.start();
