@@ -30,6 +30,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
+      - name: NPM Audit
+        run: pnpx audit-ci
+
+      - name: Install Node Modules
+        run: pnpm i
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
