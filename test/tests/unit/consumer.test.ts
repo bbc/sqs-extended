@@ -5,6 +5,7 @@ import { Consumer } from "sqs-consumer";
 
 import { SQSExtendedConsumer } from "../../../src/consumer.js";
 import { S3Handler } from "../../../src/handler.js";
+import { S3_MESSAGE_BODY_KEY } from "../../../src/constants.js";
 
 describe("SQSExtendedConsumer", () => {
   let s3HandlerStub: sinon.SinonStubbedInstance<S3Handler>;
@@ -89,23 +90,24 @@ describe("SQSExtendedConsumer", () => {
       expect(handleMessageStub.firstCall.args[0]).to.deep.equal({
         MessageId: "test-id",
         Body: JSON.stringify({ test: "data" }),
-        body: { test: "data" },
+        body: JSON.stringify({ test: "data" }),
       });
 
       expect(s3HandlerStub.download.called).to.be.false;
     });
 
-    it("should download from S3 if message has s3Payload", async () => {
+    it("should download from S3 if message has S3MessageBodyKey", async () => {
       const s3Key = "test-key";
       const fullPayload = { test: "full data" };
       const message = {
         MessageId: "test-id",
-        Body: JSON.stringify({
-          s3Payload: {
-            bucket: s3Bucket,
-            key: s3Key,
+        Body: "{}",
+        MessageAttributes: {
+          [S3_MESSAGE_BODY_KEY]: {
+            DataType: "String",
+            StringValue: `(${s3Bucket})${s3Key}`,
           },
-        }),
+        },
       };
 
       s3HandlerStub.download.resolves(fullPayload);
@@ -116,16 +118,10 @@ describe("SQSExtendedConsumer", () => {
       expect(s3HandlerStub.download.firstCall.args[0]).to.equal(s3Key);
 
       expect(handleMessageStub.calledOnce).to.be.true;
-      expect(handleMessageStub.firstCall.args[0]).to.deep.equal({
-        MessageId: "test-id",
-        Body: JSON.stringify({
-          s3Payload: {
-            bucket: s3Bucket,
-            key: s3Key,
-          },
-        }),
-        body: fullPayload,
-      });
+      expect(handleMessageStub.firstCall.args[0].MessageId).to.equal("test-id");
+      expect(handleMessageStub.firstCall.args[0].body).to.deep.equal(
+        fullPayload,
+      );
     });
 
     it("should handle invalid JSON in message body", async () => {
@@ -140,7 +136,7 @@ describe("SQSExtendedConsumer", () => {
       expect(handleMessageStub.firstCall.args[0]).to.deep.equal({
         MessageId: "test-id",
         Body: "not-json",
-        body: {},
+        body: "not-json",
       });
     });
 
@@ -149,12 +145,13 @@ describe("SQSExtendedConsumer", () => {
       const error = new Error("Download failed");
       const message = {
         MessageId: "test-id",
-        Body: JSON.stringify({
-          s3Payload: {
-            bucket: s3Bucket,
-            key: s3Key,
+        Body: "{}",
+        MessageAttributes: {
+          [S3_MESSAGE_BODY_KEY]: {
+            DataType: "String",
+            StringValue: `(${s3Bucket})${s3Key}`,
           },
-        }),
+        },
       };
 
       s3HandlerStub.download.rejects(error);
@@ -163,7 +160,7 @@ describe("SQSExtendedConsumer", () => {
         await capturedHandleMessage(message);
         expect.fail("Should have thrown an error");
       } catch (err) {
-        expect(err).to.equal(error);
+        expect(err.message).to.include("Download failed");
       }
 
       expect(handleMessageStub.called).to.be.false;

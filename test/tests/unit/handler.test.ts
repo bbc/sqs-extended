@@ -5,10 +5,10 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
-  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 
 import { S3Handler } from "../../../src/handler.js";
+import { S3OperationError } from "../../../src/utils/errors.js";
 import { Readable } from "stream";
 
 describe("S3Handler", () => {
@@ -71,7 +71,7 @@ describe("S3Handler", () => {
       const payload = { test: "data" };
       const mockStream = new Readable();
       mockStream.push(JSON.stringify(payload));
-      mockStream.push(null); // End of stream
+      mockStream.push(null);
 
       s3Client.send.resolves({
         Body: mockStream,
@@ -100,26 +100,9 @@ describe("S3Handler", () => {
         await s3Handler.download(key);
         expect.fail("Should have thrown an error");
       } catch (err) {
-        expect(err).to.equal(error);
+        expect(err).to.be.instanceOf(S3OperationError);
+        expect(err.message).to.include("Failed to download from S3");
       }
-    });
-  });
-
-  describe("delete", () => {
-    it("should delete an object from S3", async () => {
-      const key = "test-key";
-      s3Client.send.resolves({});
-
-      await s3Handler.delete(key);
-
-      expect(s3Client.send.calledOnce).to.be.true;
-
-      const command = s3Client.send.firstCall.args[0];
-      expect(command).to.be.instanceOf(DeleteObjectCommand);
-      expect(command.input).to.deep.equal({
-        Bucket: bucket,
-        Key: key,
-      });
     });
   });
 });

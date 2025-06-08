@@ -10,11 +10,28 @@ import type {
 
 import { S3Handler } from "./handler.js";
 import { ExtendedOptions, ExtendedSQSMessage } from "./types.js";
-import { extendOptionsIfDefined } from "./utils.js";
+import { extendOptionsIfDefined } from "./utils/options.js";
+import {
+  defaultReceiveTransform,
+  getS3MessageKeyAndBucket,
+} from "./utils/transformations.js";
+import {
+  embedS3MarkersInReceiptHandle,
+  extractS3MessageKeyFromReceiptHandle,
+  extractBucketNameFromReceiptHandle,
+  hasS3Markers,
+} from "./utils/receiptHandle.js";
+import { S3_MESSAGE_BODY_KEY } from "./constants.js";
 
 export class SQSExtendedConsumer {
   private consumer: Consumer;
   private s3Handler: S3Handler;
+  private sqsClient?: SQSClient;
+  private receiveTransform: (
+    message: ExtendedSQSMessage,
+    s3Content: any,
+  ) => any;
+  private useReceiptHandleMarkers: boolean;
 
   constructor(
     options: ExtendedOptions & {
@@ -28,37 +45,77 @@ export class SQSExtendedConsumer {
       options.s3Prefix,
     );
 
-    const sqsClient = options.sqsClientOptions
+    this.receiveTransform =
+      options.receiveTransform || defaultReceiveTransform();
+    this.useReceiptHandleMarkers = options.useReceiptHandleMarkers !== false;
+
+    this.sqsClient = options.sqsClientOptions
       ? new SQSClient(options.sqsClientOptions)
       : undefined;
 
+    const messageAttributeNames = options.messageAttributeNames || [];
+    if (!messageAttributeNames.includes(S3_MESSAGE_BODY_KEY)) {
+      messageAttributeNames.push(S3_MESSAGE_BODY_KEY);
+    }
+
     const handleMessage = async (message: ExtendedSQSMessage) => {
-      let body: {
-        s3Payload?: {
-          key: string;
-        };
-      } = {};
       try {
-        body = JSON.parse(message.Body || "{}");
+        const newMessage = { ...message };
+        let s3Content: any = null;
+
+        const { bucketName: attrBucketName, s3MessageKey: attrS3Key } =
+          getS3MessageKeyAndBucket(message);
+
+        let bucketName = attrBucketName;
+        let s3MessageKey = attrS3Key;
+
+        if (
+          this.useReceiptHandleMarkers &&
+          !s3MessageKey &&
+          message.ReceiptHandle
+        ) {
+          bucketName =
+            extractBucketNameFromReceiptHandle(message.ReceiptHandle) ||
+            bucketName;
+          s3MessageKey =
+            extractS3MessageKeyFromReceiptHandle(message.ReceiptHandle) ||
+            s3MessageKey;
+        }
+
+        if (s3MessageKey && bucketName) {
+          s3Content = await this.s3Handler.download(s3MessageKey, bucketName);
+
+          if (
+            this.useReceiptHandleMarkers &&
+            message.ReceiptHandle &&
+            !hasS3Markers(message.ReceiptHandle)
+          ) {
+            newMessage.ReceiptHandle = embedS3MarkersInReceiptHandle(
+              bucketName,
+              s3MessageKey,
+              message.ReceiptHandle,
+            );
+          }
+        }
+
+        try {
+          newMessage.body = this.receiveTransform(newMessage, s3Content);
+
+          await options.handleMessage(newMessage);
+        } catch (transformError) {
+          console.error("Error in receive transformation:", transformError);
+          throw transformError;
+        }
       } catch (error) {
-        body = {};
+        console.error("Error processing SQS message:", error);
+        throw error;
       }
-
-      const newMessage = message;
-
-      if (body?.s3Payload) {
-        const fullPayload = await this.s3Handler.download(body.s3Payload.key);
-        newMessage.body = fullPayload;
-      } else {
-        newMessage.body = body;
-      }
-      await options.handleMessage(newMessage);
     };
 
     const baseOptions = extendOptionsIfDefined({
       queueUrl: options.queueUrl,
       attributeNames: options.attributeNames,
-      messageAttributeNames: options.messageAttributeNames,
+      messageAttributeNames,
       messageSystemAttributeNames: options.messageSystemAttributeNames,
       batchSize: options.batchSize,
       visibilityTimeout: options.visibilityTimeout,
@@ -82,7 +139,7 @@ export class SQSExtendedConsumer {
     const consumerOptions: ConsumerOptions = {
       ...baseOptions,
       handleMessage,
-      ...(sqsClient ? { sqs: sqsClient } : {}),
+      ...(this.sqsClient ? { sqs: this.sqsClient } : {}),
     };
 
     this.consumer = Consumer.create(consumerOptions);

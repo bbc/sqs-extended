@@ -21,6 +21,27 @@ Visit [https://bbc.github.io/sqs-extended/](https://bbc.github.io/sqs-extended/)
 
 ## Usage
 
+- It is recommended that you set up your S3 bucket with a lifecycle policy to automatically delete objects after a certain period of time to avoid incurring unnecessary storage costs.
+
+### Credentials
+
+By default the consumer will look for AWS credentials in the places [specified by the AWS SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html#Setting_AWS_Credentials). The simplest option is to export your credentials as environment variables:
+
+```bash
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_ACCESS_KEY_ID=...
+```
+
+If you need to specify your credentials manually, you can use a pre-configured instance of the [SQS Client](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-sqs/classes/sqsclient.html) client.
+
+### AWS IAM Permissions
+
+The consumer will receive and delete messages from the SQS queue. Ensure `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:DeleteMessageBatch`, `sqs:ChangeMessageVisibility` and `sqs:ChangeMessageVisibilityBatch` access is granted on the queue being consumed.
+
+The producer will send messages to the SQS queue. Ensure `sqs:SendMessage` and `sqs:SendMessageBatch` access is granted on the queue being sent to.
+
+And finally, the producer will upload messages to S3. Ensure `s3:PutObject` and `s3:GetObject` access is granted on the bucket being used.
+
 ### Producer
 
 ```typescript
@@ -37,6 +58,8 @@ await producer.send({
 });
 ```
 
+You can also read the full API documentation for the SQS Producer library that's used [here](https://bbc.github.io/sqs-producer/).
+
 ### Consumer
 
 ```typescript
@@ -52,6 +75,8 @@ const consumer = new SQSExtendedConsumer({
 
 consumer.start();
 ```
+
+You can also read the full API documentation for the SQS Consumer library that's used [here](https://bbc.github.io/sqs-consumer/).
 
 ## Contributing
 

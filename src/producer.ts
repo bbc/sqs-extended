@@ -2,15 +2,24 @@ import { Producer } from "sqs-producer";
 import { S3Client } from "@aws-sdk/client-s3";
 import { SQSClient } from "@aws-sdk/client-sqs";
 import type { ProducerOptions } from "sqs-producer";
+import { v4 as uuidv4 } from "uuid";
 
 import { S3Handler } from "./handler.js";
 import { ExtendedOptions, ExtendedMessage } from "./types.js";
-import { extendOptionsIfDefined } from "./utils.js";
+import { extendOptionsIfDefined } from "./utils/options.js";
+import {
+  defaultSendTransform,
+  addS3MessageKeyAttribute,
+} from "./utils/transformations.js";
+import { SQSOperationError, withErrorHandling } from "./utils/errors.js";
+import { DEFAULT_MESSAGE_SIZE_THRESHOLD } from "./constants.js";
 
 export class SQSExtendedProducer {
   private producer;
   private s3Handler;
   private sizeThreshold;
+  private sendTransform;
+  private alwaysUseS3;
 
   constructor(options: ExtendedOptions) {
     const s3Client = new S3Client(options.s3 || {});
@@ -19,7 +28,14 @@ export class SQSExtendedProducer {
       options.s3Bucket,
       options.s3Prefix,
     );
-    this.sizeThreshold = options.sizeThreshold || 262144;
+
+    this.sizeThreshold =
+      options.sizeThreshold || DEFAULT_MESSAGE_SIZE_THRESHOLD;
+    this.alwaysUseS3 = options.alwaysUseS3 || false;
+
+    this.sendTransform =
+      options.sendTransform ||
+      defaultSendTransform(this.alwaysUseS3, this.sizeThreshold);
 
     const sqsClient = options.sqsClientOptions
       ? new SQSClient(options.sqsClientOptions)
@@ -41,6 +57,56 @@ export class SQSExtendedProducer {
   }
 
   /**
+   * Prepare a message for sending, determining if it should be stored in S3
+   * @param message The message to prepare
+   * @returns Object with processed message and S3 information if applicable
+   */
+  private async prepareMessage(message: ExtendedMessage) {
+    const { id, body, messageAttributes = {}, ...otherMessageProps } = message;
+    const payloadStr = JSON.stringify(body);
+
+    const transformResult = this.sendTransform({
+      MessageBody: payloadStr,
+      MessageAttributes: messageAttributes,
+    });
+
+    if (transformResult.s3Content) {
+      const s3Key = uuidv4();
+
+      await this.s3Handler.upload(body, s3Key);
+
+      const formattedS3Key = `(${this.s3Handler.bucket})${s3Key}`;
+
+      const updatedAttributes = addS3MessageKeyAttribute(
+        formattedS3Key,
+        messageAttributes,
+      );
+
+      return {
+        preparedMessage: {
+          id,
+          body: JSON.stringify({
+            s3Payload: { bucket: this.s3Handler.bucket, key: s3Key },
+          }),
+          messageAttributes: updatedAttributes,
+          ...otherMessageProps,
+        },
+        s3Info: { bucket: this.s3Handler.bucket, key: s3Key },
+      };
+    }
+
+    return {
+      preparedMessage: {
+        id,
+        body: JSON.stringify(body),
+        messageAttributes,
+        ...otherMessageProps,
+      },
+      s3Info: null,
+    };
+  }
+
+  /**
    * Send a message to the queue
    * If the message exceeds the size threshold, it will be stored in S3
    *
@@ -48,25 +114,15 @@ export class SQSExtendedProducer {
    * @returns The result from the underlying producer
    */
   async send(message: ExtendedMessage) {
-    const { id, body, ...otherMessageProps } = message;
-    const payloadStr = JSON.stringify(body);
-
-    if (Buffer.byteLength(payloadStr) > this.sizeThreshold) {
-      const key = await this.s3Handler.upload(body);
-      return this.producer.send({
-        id,
-        body: JSON.stringify({
-          s3Payload: { bucket: this.s3Handler.bucket, key },
-        }),
-        ...otherMessageProps,
-      });
-    }
-
-    return this.producer.send({
-      id,
-      body: JSON.stringify(body),
-      ...otherMessageProps,
-    });
+    return withErrorHandling(
+      async () => {
+        const { preparedMessage } = await this.prepareMessage(message);
+        return this.producer.send(preparedMessage);
+      },
+      "Failed to send message to SQS",
+      SQSOperationError,
+      { operation: "send" },
+    );
   }
 
   /**
@@ -77,37 +133,20 @@ export class SQSExtendedProducer {
    * @returns The result from the underlying producer
    */
   async sendBatch(messages: ExtendedMessage[]) {
-    const processedMessages = await Promise.all(
-      messages.map(async (message) => {
-        const { id, body, ...otherMessageProps } = message;
-        const payloadStr = JSON.stringify(body);
+    return withErrorHandling(
+      async () => {
+        const processedResults = await Promise.all(
+          messages.map((message) => this.prepareMessage(message)),
+        );
 
-        if (Buffer.byteLength(payloadStr) > this.sizeThreshold) {
-          const key = await this.s3Handler.upload(body);
-          return {
-            id,
-            body: JSON.stringify({
-              s3Payload: { bucket: this.s3Handler.bucket, key },
-            }),
-            ...otherMessageProps,
-          };
-        }
-
-        return {
-          id,
-          body: JSON.stringify(body),
-          ...otherMessageProps,
-        };
-      }),
+        const processedMessages = processedResults.map(
+          (result) => result.preparedMessage,
+        );
+        return this.producer.sendBatch(processedMessages);
+      },
+      "Failed to send batch of messages to SQS",
+      SQSOperationError,
+      { operation: "sendBatch" },
     );
-
-    return this.producer.sendBatch(processedMessages);
-  }
-
-  /**
-   * Access to the underlying producer instance
-   */
-  get instance() {
-    return this.producer;
   }
 }

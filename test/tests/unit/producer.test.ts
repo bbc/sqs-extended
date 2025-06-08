@@ -1,11 +1,13 @@
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import { Producer } from "sqs-producer";
+import { Producer, Message } from "sqs-producer";
 import { S3Client } from "@aws-sdk/client-s3";
 
 import { SQSExtendedProducer } from "../../../src/producer.js";
 import { S3Handler } from "../../../src/handler.js";
+import { SQSOperationError } from "../../../src/utils/errors.js";
+import { S3_MESSAGE_BODY_KEY } from "../../../src/constants.js";
 
 describe("SQSExtendedProducer", () => {
   let s3HandlerStub: sinon.SinonStubbedInstance<S3Handler>;
@@ -86,6 +88,7 @@ describe("SQSExtendedProducer", () => {
       expect(producerStub.send.firstCall.args[0]).to.deep.equal({
         id: "test-id",
         body: JSON.stringify({ test: "data" }),
+        messageAttributes: {},
       });
       expect(s3HandlerStub.upload.called).to.be.false;
     });
@@ -107,15 +110,18 @@ describe("SQSExtendedProducer", () => {
       );
 
       expect(producerStub.send.calledOnce).to.be.true;
-      expect(producerStub.send.firstCall.args[0]).to.deep.equal({
-        id: "test-id",
-        body: JSON.stringify({
-          s3Payload: {
-            bucket: s3Bucket,
-            key: s3Key,
-          },
-        }),
-      });
+      const sentMessage = producerStub.send.firstCall.args[0] as Message;
+      expect(sentMessage.id).to.equal("test-id");
+      expect(sentMessage).to.have.property("messageAttributes");
+      const messageAttrs = sentMessage.messageAttributes as Record<
+        string,
+        { DataType: string; StringValue: string }
+      >;
+      expect(messageAttrs).to.have.property(S3_MESSAGE_BODY_KEY);
+      expect(messageAttrs[S3_MESSAGE_BODY_KEY].StringValue).to.include(
+        s3Bucket,
+      );
+      expect(messageAttrs[S3_MESSAGE_BODY_KEY].DataType).to.equal("String");
     });
 
     it("should respect custom size threshold", async () => {
@@ -150,7 +156,9 @@ describe("SQSExtendedProducer", () => {
         await producer.send({ id: "test-id", body: { test: "data" } });
         expect.fail("Should have thrown an error");
       } catch (err) {
-        expect(err).to.equal(error);
+        expect(err).to.be.instanceOf(SQSOperationError);
+        expect(err.message).to.include("Failed to send message");
+        expect(err.operation).to.equal("send");
       }
     });
 
@@ -158,16 +166,15 @@ describe("SQSExtendedProducer", () => {
       const error = new Error("Upload failed");
       s3HandlerStub.upload.rejects(error);
 
-      const largeMessage = {
-        id: "test-id",
-        body: { test: "a".repeat(300000) },
-      };
-
       try {
-        await producer.send(largeMessage);
+        await producer.send({
+          id: "test-id",
+          body: { test: "a".repeat(300000) },
+        });
         expect.fail("Should have thrown an error");
       } catch (err) {
-        expect(err).to.equal(error);
+        expect(err).to.be.instanceOf(SQSOperationError);
+        expect(err.message).to.include("Failed to send message");
       }
     });
   });
