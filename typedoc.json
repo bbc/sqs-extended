@@ -5,9 +5,9 @@
   "searchInComments": true,
   "entryPoints": ["./src/index.ts"],
   "out": "public",
-  "name": "SQS Consumer",
+  "name": "SQS Extended",
   "hideGenerator": true,
   "navigationLinks": {
-    "GitHub": "https://github.com/bbc/sqs-consumer"
+    "GitHub": "https://github.com/bbc/sqs-extended"
   }
 }
