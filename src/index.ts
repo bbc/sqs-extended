@@ -4,5 +4,5 @@ export { SQSExtendedProducer } from "./producer.js";
 export type {
   ExtendedOptions,
   ExtendedSQSMessage,
-  ExtendedMessage
+  ExtendedMessage,
 } from "./types.js";

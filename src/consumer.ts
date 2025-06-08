@@ -1,7 +1,12 @@
 import { Consumer } from "sqs-consumer";
 import { S3Client } from "@aws-sdk/client-s3";
 import { SQSClient } from "@aws-sdk/client-sqs";
-import type { UpdatableOptions, ConsumerOptions, StopOptions, Events } from "sqs-consumer";
+import type {
+  UpdatableOptions,
+  ConsumerOptions,
+  StopOptions,
+  Events,
+} from "sqs-consumer";
 
 import { S3Handler } from "./handler.js";
 import { ExtendedOptions, ExtendedSQSMessage } from "./types.js";
@@ -23,10 +28,10 @@ export class SQSExtendedConsumer {
       options.s3Prefix,
     );
 
-    const sqsClient = options.sqsClientOptions ? 
-      new SQSClient(options.sqsClientOptions) : 
-      undefined;
-      
+    const sqsClient = options.sqsClientOptions
+      ? new SQSClient(options.sqsClientOptions)
+      : undefined;
+
     const handleMessage = async (message: ExtendedSQSMessage) => {
       let body: {
         s3Payload?: {
@@ -49,7 +54,7 @@ export class SQSExtendedConsumer {
       }
       await options.handleMessage(newMessage);
     };
-    
+
     const baseOptions = extendOptionsIfDefined({
       queueUrl: options.queueUrl,
       attributeNames: options.attributeNames,
@@ -71,13 +76,13 @@ export class SQSExtendedConsumer {
       extendedAWSErrors: options.extendedAWSErrors,
       suppressFifoWarning: options.suppressFifoWarning,
       preReceiveMessageCallback: options.preReceiveMessageCallback,
-      postReceiveMessageCallback: options.postReceiveMessageCallback
+      postReceiveMessageCallback: options.postReceiveMessageCallback,
     });
-    
+
     const consumerOptions: ConsumerOptions = {
       ...baseOptions,
       handleMessage,
-      ...(sqsClient ? { sqs: sqsClient } : {})
+      ...(sqsClient ? { sqs: sqsClient } : {}),
     };
 
     this.consumer = Consumer.create(consumerOptions);
@@ -97,7 +102,7 @@ export class SQSExtendedConsumer {
   stop(options?: StopOptions): void {
     this.consumer.stop(options);
   }
-  
+
   /**
    * Returns the current status of the consumer.
    * This includes whether it is running or currently polling.
@@ -105,11 +110,11 @@ export class SQSExtendedConsumer {
   get status() {
     return this.consumer.status;
   }
-  
+
   /**
    * Access to event emitter methods.
    * Use this to attach event handlers to the consumer.
-   * @example 
+   * @example
    * consumer.on('message_received', (message) => {
    *   console.log(message);
    * });
@@ -124,7 +129,10 @@ export class SQSExtendedConsumer {
    * @param option The option to validate and then update
    * @param value The value to set the provided option to
    */
-  updateOption(option: UpdatableOptions, value: ConsumerOptions[UpdatableOptions]): void {
+  updateOption(
+    option: UpdatableOptions,
+    value: ConsumerOptions[UpdatableOptions],
+  ): void {
     this.consumer.updateOption(option, value);
   }
 }

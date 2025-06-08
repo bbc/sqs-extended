@@ -11,7 +11,9 @@ export type ExtendedSQSMessage = SQSMessage & {
  * Extends both ConsumerOptions and ProducerOptions to allow full access to all settings,
  * while adding S3 integration capabilities.
  */
-export interface ExtendedOptions extends Omit<ConsumerOptions, 'sqs'>, Omit<ProducerOptions, 'sqs'> {
+export interface ExtendedOptions
+  extends Omit<ConsumerOptions, "sqs">,
+    Omit<ProducerOptions, "sqs"> {
   /**
    * The SQS queue URL.
    */
