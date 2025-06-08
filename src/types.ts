@@ -1,3 +1,10 @@
+import {
+  Message as SQSMessage,
+} from "@aws-sdk/client-sqs";
+
+export type ExtendedSQSMessage = SQSMessage & {
+  body?: Record<string, any>;
+};
 
 /**
  * The options for the consumer.

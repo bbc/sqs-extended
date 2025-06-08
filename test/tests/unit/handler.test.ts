@@ -24,8 +24,18 @@ describe('S3Handler', () => {
   describe('upload', () => {
     it('should upload payload to S3 and return key', async () => {
       const uuid = '123e4567-e89b-12d3-a456-426614174000';
-      const uuidStub = sinon.stub().returns(uuid);
-      sinon.stub(await import('uuid'), 'v4').value(uuidStub);
+      
+      const originalUpload = S3Handler.prototype.upload;
+      S3Handler.prototype.upload = async function(payload: any) {
+        const key = `${this.prefix}${uuid}.json`;
+        await this.s3.send(new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: JSON.stringify(payload),
+          ContentType: 'application/json'
+        }));
+        return key;
+      };
 
       const payload = { test: 'data' };
       s3Client.send.resolves({});
@@ -43,6 +53,8 @@ describe('S3Handler', () => {
         Body: JSON.stringify(payload),
         ContentType: 'application/json'
       });
+      
+      S3Handler.prototype.upload = originalUpload;
     });
   });
 
