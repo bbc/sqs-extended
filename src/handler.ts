@@ -9,7 +9,7 @@ import { Readable } from "stream";
 
 export class S3Handler {
   private s3: S3Client;
-  private bucket: string;
+  readonly bucket: string;
   private prefix: string;
 
   constructor(s3: S3Client, bucket: string, prefix = "") {

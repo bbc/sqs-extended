@@ -1,6 +1,6 @@
 {
   "name": "@bbc/sqs-extended",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Handles large SQS payloads by offloading message bodies to S3 automatically.",
   "type": "module",
   "main": "dist/cjs/index.js",

@@ -51,12 +51,12 @@ describe("SQSExtendedConsumer", () => {
         s3Prefix,
         handleMessage: handleMessageStub,
       });
-
+  
       expect(consumerCreateStub.calledOnce).to.be.true;
-      expect(consumerCreateStub.firstCall.args[0].queueUrl).to.equal(queueUrl);
-      expect(
-        typeof consumerCreateStub.firstCall.args[0].handleMessage,
-      ).to.equal("function");
+      
+      const options = consumerCreateStub.firstCall.args[0];
+      expect(options.queueUrl).to.equal(queueUrl);
+      expect(options.handleMessage).to.be.a('function');
     });
   });
 

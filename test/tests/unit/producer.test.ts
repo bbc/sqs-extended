@@ -83,7 +83,10 @@ describe("SQSExtendedProducer", () => {
       await producer.send(message);
 
       expect(producerStub.send.calledOnce).to.be.true;
-      expect(producerStub.send.firstCall.args[0]).to.deep.equal(message);
+      expect(producerStub.send.firstCall.args[0]).to.deep.equal({
+        id: "test-id",
+        body: JSON.stringify({ test: "data" }),
+      });
       expect(s3HandlerStub.upload.called).to.be.false;
     });
 
@@ -106,12 +109,12 @@ describe("SQSExtendedProducer", () => {
       expect(producerStub.send.calledOnce).to.be.true;
       expect(producerStub.send.firstCall.args[0]).to.deep.equal({
         id: "test-id",
-        body: {
+        body: JSON.stringify({
           s3Payload: {
             bucket: s3Bucket,
             key: s3Key,
           },
-        },
+        }),
       });
     });
 
