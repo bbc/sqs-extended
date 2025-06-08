@@ -35,7 +35,7 @@ jobs:
         run: pnpm i
 
       - name: Run Coverage Check
-        run: pnpm run lcov
+        run: ppnpm run lcov
 
       - name: Setup LCOV
         uses: hrishikesh-kadam/setup-lcov@v1

@@ -5,7 +5,7 @@ Thank you for your interest in contributing to the sqs-extended.
 - If you're unsure if a feature would make a good addition, you can always [create an issue](https://github.com/bbc/sqs-extended/issues/new) first. Raising an issue before creating a pull request is recommended.
 - We aim for 100% test coverage. Please write tests for any new functionality or changes.
 - Any API changes should be fully documented.
-- Make sure your code meets our linting standards. Run `npm run lint` to check your code.
+- Make sure your code meets our linting standards. Run `pnpm run lint` to check your code.
 - Maintain the existing coding style.
 - Be mindful of others when making suggestions and/or code reviewing.
 
