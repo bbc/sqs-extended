@@ -12,7 +12,7 @@ A lightweight wrapper around [sqs-consumer](https://github.com/bbc/sqs-consumer)
 To install this package, simply enter the following command into your terminal (or the variant of whatever package manager you are using):
 
 ```bash
-npm install sqs-extended
+npm install @bbc/sqs-extended
 ```
 
 ## Documentation
