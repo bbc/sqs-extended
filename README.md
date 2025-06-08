@@ -5,6 +5,8 @@
 
 A lightweight wrapper around [sqs-consumer](https://github.com/bbc/sqs-consumer) and [sqs-producer](https://github.com/bbc/sqs-producer) that extends the functionality of the libraries to enable handling large SQS payloads by offloading message bodies to S3 automatically.
 
+> **Note:** This package is currently in development and is not recommended for production use.
+
 ## Installation
 
 To install this package, simply enter the following command into your terminal (or the variant of whatever package manager you are using):
