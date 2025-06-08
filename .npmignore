@@ -1,0 +1,15 @@
+node_modules
+coverage
+*.log
+.vscode
+examples
+test
+public
+.nyc_output
+scripts
+.github
+.prettierignore
+.prettierrc.js
+jsr.json
+typdoc.json
+eslint.config.js
