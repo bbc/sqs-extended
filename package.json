@@ -1,0 +1,204 @@
+{
+  "name": "sqs-extended",
+  "version": "0.0.1",
+  "description": "Handles large SQS payloads by offloading message bodies to S3 automatically.",
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "clean": "rm -fr dist/*",
+    "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json",
+    "add-package-jsons": "node ./scripts/addPackageJsons.js",
+    "build": "pnpm run clean && pnpm run compile && pnpm run add-package-jsons",
+    "watch": "tsc --watch",
+    "prepublishOnly": "pnpm run build",
+    "test:unit": "mocha --recursive --full-trace --exit",
+    "test:unit:report": "mocha --recursive --full-trace --exit --reporter json > test/reports/test-results.json",
+    "test": "pnpm run test:unit:report",
+    "coverage": "c8 mocha && c8 report --reporter=html && c8 report --reporter=json-summary",
+    "lcov": "c8 mocha && c8 report --reporter=lcov",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --log-level warn --write \"**/*.{js,json,jsx,md,ts,tsx,html}\"",
+    "format:check": "prettier --check \"**/*.{js,json,jsx,md,ts,tsx,html}\"",
+    "posttest": "pnpm run lint && pnpm run format:check",
+    "generate-docs": "typedoc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bbc/sqs-extended.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bbc/sqs-extended/issues"
+  },
+  "homepage": "https://bbc.github.io/sqs-extended/",
+  "keywords": [
+    "sqs",
+    "queue",
+    "consumer",
+    "producer",
+    "s3",
+    "large-payloads"
+  ],
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "provenance": true
+  },
+  "release": {
+    "branches": [
+      "main",
+      "*.x",
+      {
+        "name": "canary",
+        "prerelease": true
+      }
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            {
+              "type": "breaking",
+              "release": "major"
+            },
+            {
+              "type": "feat",
+              "release": "minor"
+            },
+            {
+              "type": "chore",
+              "release": "patch"
+            },
+            {
+              "type": "fix",
+              "release": "patch"
+            },
+            {
+              "type": "docs",
+              "release": "patch"
+            },
+            {
+              "type": "refactor",
+              "release": "patch"
+            },
+            {
+              "type": "test",
+              "release": "patch"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits",
+          "presetConfig": {
+            "types": [
+              {
+                "type": "feat",
+                "section": "Features"
+              },
+              {
+                "type": "fix",
+                "section": "Bug Fixes"
+              },
+              {
+                "type": "chore",
+                "section": "Chores"
+              },
+              {
+                "type": "docs",
+                "section": "Documentation"
+              },
+              {
+                "type": "refactor",
+                "section": "Refactors"
+              },
+              {
+                "type": "test",
+                "section": "Tests"
+              }
+            ]
+          }
+        }
+      ],
+      "@semantic-release/changelog",
+      "@semantic-release/github",
+      "@semantic-release/npm"
+    ]
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.3",
+    "@types/chai": "^5.0.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.10.5",
+    "@types/sinon": "^17.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "c8": "^10.1.3",
+    "chai": "^5.1.2",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "eslint": "^9.17.0",
+    "eslint-config-eslint": "^11.0.0",
+    "mocha": "^11.0.1",
+    "p-event": "^6.0.1",
+    "prettier": "^3.4.2",
+    "semantic-release": "^24.2.1",
+    "sinon": "^19.0.2",
+    "sqs-producer": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.27.6",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "debug": "^4.4.0",
+    "uuid": "^11.1.0"
+  },
+  "peerDependencies": {
+    "@aws-sdk/client-s3": "^3.723.0",
+    "@aws-sdk/client-sqs": "^3.723.0",
+    "sqs-consumer": "^12.0.0",
+    "sqs-producer": "^7.0.0"
+  },
+  "mocha": {
+    "extensions": [
+      "ts"
+    ],
+    "spec": "test/tests/**/**/*.test.ts",
+    "node-option": [
+      "loader=ts-node/esm"
+    ]
+  },
+  "c8": {
+    "include": [
+      "src/**/*.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "sourceMap": true,
+    "instrument": true
+  }
+}
