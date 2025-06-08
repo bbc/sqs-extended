@@ -68,10 +68,6 @@ export interface ExtendedOptions
    */
   sizeThreshold?: number;
   /**
-   * The S3 TTL in seconds.
-   */
-  s3TtlSeconds?: number;
-  /**
    * The SQS client options.
    */
   sqsClientOptions?: { region?: string; credentials?: any };
