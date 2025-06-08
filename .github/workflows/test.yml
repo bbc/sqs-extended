@@ -44,7 +44,7 @@ jobs:
         run: pnpm i
 
       - name: Run Tests and Linting
-        run: ppnpm run test
+        run: pnpm run test
 
       - uses: actions/upload-artifact@v4
         with:
