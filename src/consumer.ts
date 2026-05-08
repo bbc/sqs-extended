@@ -1,20 +1,12 @@
 import { Consumer } from "sqs-consumer";
 import { S3Client } from "@aws-sdk/client-s3";
 import { SQSClient } from "@aws-sdk/client-sqs";
-import type {
-  UpdatableOptions,
-  ConsumerOptions,
-  StopOptions,
-  Events,
-} from "sqs-consumer";
+import type { UpdatableOptions, ConsumerOptions, StopOptions, Events } from "sqs-consumer";
 
 import { S3Handler } from "./handler.js";
 import { ExtendedOptions, ExtendedSQSMessage } from "./types.js";
 import { extendOptionsIfDefined } from "./utils/options.js";
-import {
-  defaultReceiveTransform,
-  getS3MessageKeyAndBucket,
-} from "./utils/transformations.js";
+import { defaultReceiveTransform, getS3MessageKeyAndBucket } from "./utils/transformations.js";
 import {
   embedS3MarkersInReceiptHandle,
   extractS3MessageKeyFromReceiptHandle,
@@ -27,10 +19,7 @@ export class SQSExtendedConsumer {
   private consumer: Consumer;
   private s3Handler: S3Handler;
   private sqsClient?: SQSClient;
-  private receiveTransform: (
-    message: ExtendedSQSMessage,
-    s3Content: any,
-  ) => any;
+  private receiveTransform: (message: ExtendedSQSMessage, s3Content: any) => any;
   private useReceiptHandleMarkers: boolean;
 
   constructor(
@@ -39,19 +28,12 @@ export class SQSExtendedConsumer {
     },
   ) {
     const s3Client = new S3Client(options.s3 || {});
-    this.s3Handler = new S3Handler(
-      s3Client,
-      options.s3Bucket,
-      options.s3Prefix,
-    );
+    this.s3Handler = new S3Handler(s3Client, options.s3Bucket, options.s3Prefix);
 
-    this.receiveTransform =
-      options.receiveTransform || defaultReceiveTransform();
+    this.receiveTransform = options.receiveTransform || defaultReceiveTransform();
     this.useReceiptHandleMarkers = options.useReceiptHandleMarkers !== false;
 
-    this.sqsClient = options.sqsClientOptions
-      ? new SQSClient(options.sqsClientOptions)
-      : undefined;
+    this.sqsClient = options.sqsClientOptions ? new SQSClient(options.sqsClientOptions) : undefined;
 
     const messageAttributeNames = options.messageAttributeNames || [];
     if (!messageAttributeNames.includes(S3_MESSAGE_BODY_KEY)) {
@@ -69,17 +51,10 @@ export class SQSExtendedConsumer {
         let bucketName = attrBucketName;
         let s3MessageKey = attrS3Key;
 
-        if (
-          this.useReceiptHandleMarkers &&
-          !s3MessageKey &&
-          message.ReceiptHandle
-        ) {
-          bucketName =
-            extractBucketNameFromReceiptHandle(message.ReceiptHandle) ||
-            bucketName;
+        if (this.useReceiptHandleMarkers && !s3MessageKey && message.ReceiptHandle) {
+          bucketName = extractBucketNameFromReceiptHandle(message.ReceiptHandle) || bucketName;
           s3MessageKey =
-            extractS3MessageKeyFromReceiptHandle(message.ReceiptHandle) ||
-            s3MessageKey;
+            extractS3MessageKeyFromReceiptHandle(message.ReceiptHandle) || s3MessageKey;
         }
 
         if (s3MessageKey && bucketName) {
@@ -186,10 +161,7 @@ export class SQSExtendedConsumer {
    * @param option The option to validate and then update
    * @param value The value to set the provided option to
    */
-  updateOption(
-    option: UpdatableOptions,
-    value: ConsumerOptions[UpdatableOptions],
-  ): void {
+  updateOption(option: UpdatableOptions, value: ConsumerOptions[UpdatableOptions]): void {
     this.consumer.updateOption(option, value);
   }
 }

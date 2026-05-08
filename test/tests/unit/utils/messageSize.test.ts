@@ -1,9 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import {
-  getMessageAttributesSize,
-  isLarge,
-} from "../../../../src/utils/messageSize.js";
+import { getMessageAttributesSize, isLarge } from "../../../../src/utils/messageSize.js";
 import { DEFAULT_MESSAGE_SIZE_THRESHOLD } from "../../../../src/constants.js";
 
 describe("Message Size Utils", () => {
@@ -68,9 +65,7 @@ describe("Message Size Utils", () => {
 
       const size = getMessageAttributesSize(messageAttributes);
       expect(size).to.be.at.least(
-        "BinaryAttr".length +
-          "Binary".length +
-          Buffer.from("Binary value").length,
+        "BinaryAttr".length + "Binary".length + Buffer.from("Binary value").length,
       );
     });
 
@@ -88,10 +83,7 @@ describe("Message Size Utils", () => {
 
       const size = getMessageAttributesSize(messageAttributes);
       expect(size).to.be.at.least(
-        "NullAttr1".length +
-          "String".length +
-          "NullAttr2".length +
-          "Binary".length,
+        "NullAttr1".length + "String".length + "NullAttr2".length + "Binary".length,
       );
     });
 

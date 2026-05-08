@@ -12,8 +12,7 @@ describe("SQSExtendedConsumer", () => {
   let consumerCreateStub: sinon.SinonStub;
   let handleMessageStub: sinon.SinonStub;
 
-  const queueUrl =
-    "https://sqs.us-east-1.amazonaws.com/123456789012/test-queue";
+  const queueUrl = "https://sqs.us-east-1.amazonaws.com/123456789012/test-queue";
   const s3Bucket = "test-bucket";
   const s3Prefix = "test-prefix/";
 
@@ -118,9 +117,7 @@ describe("SQSExtendedConsumer", () => {
 
       expect(handleMessageStub.calledOnce).to.be.true;
       expect(handleMessageStub.firstCall.args[0].MessageId).to.equal("test-id");
-      expect(handleMessageStub.firstCall.args[0].body).to.deep.equal(
-        fullPayload,
-      );
+      expect(handleMessageStub.firstCall.args[0].body).to.deep.equal(fullPayload);
     });
 
     it("should handle invalid JSON in message body", async () => {

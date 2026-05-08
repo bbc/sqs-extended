@@ -42,9 +42,7 @@ export function isLarge(
   message: { MessageBody: string; MessageAttributes?: Record<string, any> },
   messageSizeThreshold = DEFAULT_MESSAGE_SIZE_THRESHOLD,
 ): boolean {
-  const messageAttributeSize = getMessageAttributesSize(
-    message.MessageAttributes,
-  );
+  const messageAttributeSize = getMessageAttributesSize(message.MessageAttributes);
   const bodySize = Buffer.byteLength(message.MessageBody, "utf8");
   return messageAttributeSize + bodySize > messageSizeThreshold;
 }

@@ -37,10 +37,7 @@ export type SendTransformFunction = (message: {
  * Transformation function for receiving messages
  * Processes the message body, potentially handling S3-stored content
  */
-export type ReceiveTransformFunction = (
-  message: any,
-  s3Content: string | null,
-) => any;
+export type ReceiveTransformFunction = (message: any, s3Content: string | null) => any;
 
 /**
  * The options for the extended SQS consumer and producer.
@@ -48,8 +45,7 @@ export type ReceiveTransformFunction = (
  * while adding S3 integration capabilities.
  */
 export interface ExtendedOptions
-  extends Omit<ConsumerOptions, "sqs">,
-    Omit<ProducerOptions, "sqs"> {
+  extends Omit<ConsumerOptions, "sqs">, Omit<ProducerOptions, "sqs"> {
   /**
    * The SQS queue URL.
    */

@@ -5,10 +5,7 @@ import {
   extractS3MessageKeyFromReceiptHandle,
   getOriginalReceiptHandle,
 } from "../../../../src/utils/receiptHandle.js";
-import {
-  S3_BUCKET_NAME_MARKER,
-  S3_MESSAGE_KEY_MARKER,
-} from "../../../../src/constants.js";
+import { S3_BUCKET_NAME_MARKER, S3_MESSAGE_KEY_MARKER } from "../../../../src/constants.js";
 
 describe("Receipt Handle Utils", () => {
   const bucketName = "test-bucket";
@@ -17,11 +14,7 @@ describe("Receipt Handle Utils", () => {
 
   describe("embedS3MarkersInReceiptHandle", () => {
     it("should embed S3 markers in receipt handle", () => {
-      const result = embedS3MarkersInReceiptHandle(
-        bucketName,
-        s3MessageKey,
-        originalReceiptHandle,
-      );
+      const result = embedS3MarkersInReceiptHandle(bucketName, s3MessageKey, originalReceiptHandle);
 
       expect(result).to.include(originalReceiptHandle);
       expect(result).to.include(S3_BUCKET_NAME_MARKER);
@@ -53,9 +46,7 @@ describe("Receipt Handle Utils", () => {
         s3MessageKey,
         originalReceiptHandle,
       );
-      const extractedBucket = extractBucketNameFromReceiptHandle(
-        embeddedReceiptHandle,
-      );
+      const extractedBucket = extractBucketNameFromReceiptHandle(embeddedReceiptHandle);
 
       expect(extractedBucket).to.equal(bucketName);
     });
@@ -73,17 +64,13 @@ describe("Receipt Handle Utils", () => {
         s3MessageKey,
         originalReceiptHandle,
       );
-      const extractedKey = extractS3MessageKeyFromReceiptHandle(
-        embeddedReceiptHandle,
-      );
+      const extractedKey = extractS3MessageKeyFromReceiptHandle(embeddedReceiptHandle);
 
       expect(extractedKey).to.equal(s3MessageKey);
     });
 
     it("should return null if no message key is embedded", () => {
-      const result = extractS3MessageKeyFromReceiptHandle(
-        originalReceiptHandle,
-      );
+      const result = extractS3MessageKeyFromReceiptHandle(originalReceiptHandle);
       expect(result).to.be.null;
     });
   });

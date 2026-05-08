@@ -1,10 +1,6 @@
 import { describe, it, beforeEach, afterEach, expect } from "vitest";
 import sinon from "sinon";
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
 import { S3Handler } from "../../../src/handler.js";
 import { S3OperationError } from "../../../src/utils/errors.js";

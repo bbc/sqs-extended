@@ -12,8 +12,7 @@ describe("SQSExtendedProducer", () => {
   let s3HandlerStub: sinon.SinonStubbedInstance<S3Handler>;
   let producerStub: sinon.SinonStubbedInstance<Producer>;
   let producerCreateStub: sinon.SinonStub;
-  const queueUrl =
-    "https://sqs.us-east-1.amazonaws.com/123456789012/test-queue";
+  const queueUrl = "https://sqs.us-east-1.amazonaws.com/123456789012/test-queue";
   const s3Bucket = "test-bucket";
   const s3Prefix = "test-prefix/";
 
@@ -104,9 +103,7 @@ describe("SQSExtendedProducer", () => {
       await producer.send(largeMessage);
 
       expect(s3HandlerStub.upload.calledOnce).to.be.true;
-      expect(s3HandlerStub.upload.firstCall.args[0]).to.deep.equal(
-        largeMessage.body,
-      );
+      expect(s3HandlerStub.upload.firstCall.args[0]).to.deep.equal(largeMessage.body);
 
       expect(producerStub.send.calledOnce).to.be.true;
       const sentMessage = producerStub.send.firstCall.args[0] as Message;
@@ -117,9 +114,7 @@ describe("SQSExtendedProducer", () => {
         { DataType: string; StringValue: string }
       >;
       expect(messageAttrs).to.have.property(S3_MESSAGE_BODY_KEY);
-      expect(messageAttrs[S3_MESSAGE_BODY_KEY].StringValue).to.include(
-        s3Bucket,
-      );
+      expect(messageAttrs[S3_MESSAGE_BODY_KEY].StringValue).to.include(s3Bucket);
       expect(messageAttrs[S3_MESSAGE_BODY_KEY].DataType).to.equal("String");
     });
 

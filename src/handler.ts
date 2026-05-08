@@ -1,8 +1,4 @@
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import { Readable } from "stream";
 
@@ -73,9 +69,7 @@ export class S3Handler {
             const chunks: Uint8Array[] = [];
             stream.on("data", (chunk) => chunks.push(chunk));
             stream.on("error", reject);
-            stream.on("end", () =>
-              resolve(Buffer.concat(chunks).toString("utf-8")),
-            );
+            stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
           });
 
         return JSON.parse(await streamToString(response.Body as Readable));

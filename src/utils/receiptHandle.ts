@@ -20,13 +20,10 @@ export function embedS3MarkersInReceiptHandle(
  * @param receiptHandle Receipt handle that may contain S3 metadata
  * @returns The bucket name or null if not found
  */
-export function extractBucketNameFromReceiptHandle(
-  receiptHandle: string,
-): string | null {
+export function extractBucketNameFromReceiptHandle(receiptHandle: string): string | null {
   if (receiptHandle.includes(S3_BUCKET_NAME_MARKER)) {
     return receiptHandle.substring(
-      receiptHandle.indexOf(S3_BUCKET_NAME_MARKER) +
-        S3_BUCKET_NAME_MARKER.length,
+      receiptHandle.indexOf(S3_BUCKET_NAME_MARKER) + S3_BUCKET_NAME_MARKER.length,
       receiptHandle.lastIndexOf(S3_BUCKET_NAME_MARKER),
     );
   }
@@ -38,13 +35,10 @@ export function extractBucketNameFromReceiptHandle(
  * @param receiptHandle Receipt handle that may contain S3 metadata
  * @returns The S3 object key or null if not found
  */
-export function extractS3MessageKeyFromReceiptHandle(
-  receiptHandle: string,
-): string | null {
+export function extractS3MessageKeyFromReceiptHandle(receiptHandle: string): string | null {
   if (receiptHandle.includes(S3_MESSAGE_KEY_MARKER)) {
     return receiptHandle.substring(
-      receiptHandle.indexOf(S3_MESSAGE_KEY_MARKER) +
-        S3_MESSAGE_KEY_MARKER.length,
+      receiptHandle.indexOf(S3_MESSAGE_KEY_MARKER) + S3_MESSAGE_KEY_MARKER.length,
       receiptHandle.lastIndexOf(S3_MESSAGE_KEY_MARKER),
     );
   }
@@ -59,8 +53,7 @@ export function extractS3MessageKeyFromReceiptHandle(
 export function getOriginalReceiptHandle(receiptHandle: string): string {
   return receiptHandle.includes(S3_MESSAGE_KEY_MARKER)
     ? receiptHandle.substring(
-        receiptHandle.lastIndexOf(S3_MESSAGE_KEY_MARKER) +
-          S3_MESSAGE_KEY_MARKER.length,
+        receiptHandle.lastIndexOf(S3_MESSAGE_KEY_MARKER) + S3_MESSAGE_KEY_MARKER.length,
       )
     : receiptHandle;
 }
@@ -72,7 +65,6 @@ export function getOriginalReceiptHandle(receiptHandle: string): string {
  */
 export function hasS3Markers(receiptHandle: string): boolean {
   return (
-    receiptHandle.includes(S3_MESSAGE_KEY_MARKER) &&
-    receiptHandle.includes(S3_BUCKET_NAME_MARKER)
+    receiptHandle.includes(S3_MESSAGE_KEY_MARKER) && receiptHandle.includes(S3_BUCKET_NAME_MARKER)
   );
 }

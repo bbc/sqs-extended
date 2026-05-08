@@ -8,10 +8,7 @@ import { S3_MESSAGE_BODY_KEY } from "../constants.js";
  * @param messageSizeThreshold Size threshold for storing in S3
  * @returns A transformation function that determines whether to use S3 based on message size
  */
-export function defaultSendTransform(
-  alwaysUseS3: boolean,
-  messageSizeThreshold: number,
-) {
+export function defaultSendTransform(alwaysUseS3: boolean, messageSizeThreshold: number) {
   return (message: {
     MessageBody: string;
     MessageAttributes?: Record<string, any>;
@@ -41,8 +38,7 @@ export function defaultReceiveTransform() {
  * @returns Object containing bucket name and S3 message key
  */
 export function getS3MessageKeyAndBucket(message: any): S3MessageMetadata {
-  const messageAttributes =
-    message.messageAttributes || message.MessageAttributes || {};
+  const messageAttributes = message.messageAttributes || message.MessageAttributes || {};
 
   if (!messageAttributes[S3_MESSAGE_BODY_KEY]) {
     return {
@@ -52,8 +48,7 @@ export function getS3MessageKeyAndBucket(message: any): S3MessageMetadata {
   }
 
   const s3MessageKeyAttr = messageAttributes[S3_MESSAGE_BODY_KEY];
-  const s3MessageKey =
-    s3MessageKeyAttr.stringValue || s3MessageKeyAttr.StringValue;
+  const s3MessageKey = s3MessageKeyAttr.stringValue || s3MessageKeyAttr.StringValue;
 
   if (!s3MessageKey) {
     throw new Error(
@@ -63,9 +58,7 @@ export function getS3MessageKeyAndBucket(message: any): S3MessageMetadata {
 
   const s3MessageKeyRegexMatch = s3MessageKey.match(/^\((.*)\)(.+)/);
   if (!s3MessageKeyRegexMatch) {
-    throw new Error(
-      `Invalid ${S3_MESSAGE_BODY_KEY} format: Expected "(bucketName)messageKey"`,
-    );
+    throw new Error(`Invalid ${S3_MESSAGE_BODY_KEY} format: Expected "(bucketName)messageKey"`);
   }
 
   return {

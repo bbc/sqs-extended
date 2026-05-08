@@ -7,10 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { S3Handler } from "./handler.js";
 import { ExtendedOptions, ExtendedMessage } from "./types.js";
 import { extendOptionsIfDefined } from "./utils/options.js";
-import {
-  defaultSendTransform,
-  addS3MessageKeyAttribute,
-} from "./utils/transformations.js";
+import { defaultSendTransform, addS3MessageKeyAttribute } from "./utils/transformations.js";
 import { SQSOperationError, withErrorHandling } from "./utils/errors.js";
 import { DEFAULT_MESSAGE_SIZE_THRESHOLD } from "./constants.js";
 
@@ -23,19 +20,13 @@ export class SQSExtendedProducer {
 
   constructor(options: ExtendedOptions) {
     const s3Client = new S3Client(options.s3 || {});
-    this.s3Handler = new S3Handler(
-      s3Client,
-      options.s3Bucket,
-      options.s3Prefix,
-    );
+    this.s3Handler = new S3Handler(s3Client, options.s3Bucket, options.s3Prefix);
 
-    this.sizeThreshold =
-      options.sizeThreshold || DEFAULT_MESSAGE_SIZE_THRESHOLD;
+    this.sizeThreshold = options.sizeThreshold || DEFAULT_MESSAGE_SIZE_THRESHOLD;
     this.alwaysUseS3 = options.alwaysUseS3 || false;
 
     this.sendTransform =
-      options.sendTransform ||
-      defaultSendTransform(this.alwaysUseS3, this.sizeThreshold);
+      options.sendTransform || defaultSendTransform(this.alwaysUseS3, this.sizeThreshold);
 
     const sqsClient = options.sqsClientOptions
       ? new SQSClient(options.sqsClientOptions)
@@ -77,10 +68,7 @@ export class SQSExtendedProducer {
 
       const formattedS3Key = `(${this.s3Handler.bucket})${s3Key}`;
 
-      const updatedAttributes = addS3MessageKeyAttribute(
-        formattedS3Key,
-        messageAttributes,
-      );
+      const updatedAttributes = addS3MessageKeyAttribute(formattedS3Key, messageAttributes);
 
       return {
         preparedMessage: {
@@ -139,9 +127,7 @@ export class SQSExtendedProducer {
           messages.map((message) => this.prepareMessage(message)),
         );
 
-        const processedMessages = processedResults.map(
-          (result) => result.preparedMessage,
-        );
+        const processedMessages = processedResults.map((result) => result.preparedMessage);
         return this.producer.sendBatch(processedMessages);
       },
       "Failed to send batch of messages to SQS",
