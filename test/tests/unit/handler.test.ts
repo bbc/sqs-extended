@@ -62,7 +62,7 @@ describe("S3Handler", () => {
 
   describe("download", () => {
     it("should download payload from S3 and parse JSON", async () => {
-      const key = "test-key";
+      const key = `${prefix}test-key`;
       const payload = { test: "data" };
       const mockStream = new Readable();
       mockStream.push(JSON.stringify(payload));
@@ -86,7 +86,7 @@ describe("S3Handler", () => {
     });
 
     it("should handle errors when downloading", async () => {
-      const key = "test-key";
+      const key = `${prefix}test-key`;
       const error = new Error("Download failed");
 
       s3Client.send.rejects(error);
@@ -98,6 +98,30 @@ describe("S3Handler", () => {
         expect(err).to.be.instanceOf(S3OperationError);
         expect(err.message).to.include("Failed to download from S3");
       }
+    });
+
+    it("should reject downloads from unexpected buckets", async () => {
+      try {
+        await s3Handler.download(`${prefix}test-key`, "other-bucket");
+        expect.fail("Should have thrown an error");
+      } catch (err) {
+        expect(err).to.be.instanceOf(S3OperationError);
+        expect(err.message).to.include("unexpected S3 bucket");
+      }
+
+      expect(s3Client.send.called).to.equal(false);
+    });
+
+    it("should reject downloads outside the configured prefix", async () => {
+      try {
+        await s3Handler.download("other-prefix/test-key", bucket);
+        expect.fail("Should have thrown an error");
+      } catch (err) {
+        expect(err).to.be.instanceOf(S3OperationError);
+        expect(err.message).to.include("outside configured prefix");
+      }
+
+      expect(s3Client.send.called).to.equal(false);
     });
   });
 });

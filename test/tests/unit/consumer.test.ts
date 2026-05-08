@@ -33,8 +33,8 @@ describe("SQSExtendedConsumer", () => {
     consumerCreateStub = sinon.stub(Consumer, "create").returns(consumerStub);
     handleMessageStub = sinon.stub().resolves();
 
-    sinon.stub(S3Handler.prototype, "download").callsFake(async (key) => {
-      return s3HandlerStub.download(key);
+    sinon.stub(S3Handler.prototype, "download").callsFake(async (key, bucket) => {
+      return s3HandlerStub.download(key, bucket);
     });
   });
 
@@ -114,10 +114,35 @@ describe("SQSExtendedConsumer", () => {
 
       expect(s3HandlerStub.download.calledOnce).to.be.true;
       expect(s3HandlerStub.download.firstCall.args[0]).to.equal(s3Key);
+      expect(s3HandlerStub.download.firstCall.args[1]).to.equal(s3Bucket);
 
       expect(handleMessageStub.calledOnce).to.be.true;
       expect(handleMessageStub.firstCall.args[0].MessageId).to.equal("test-id");
       expect(handleMessageStub.firstCall.args[0].body).to.deep.equal(fullPayload);
+    });
+
+    it("should reject S3 messages that reference another bucket", async () => {
+      const message = {
+        MessageId: "test-id",
+        Body: "{}",
+        MessageAttributes: {
+          [S3_MESSAGE_BODY_KEY]: {
+            DataType: "String",
+            StringValue: "(other-bucket)test-key",
+          },
+        },
+      };
+
+      s3HandlerStub.download.rejects(new Error("Refusing to download from unexpected S3 bucket"));
+
+      try {
+        await capturedHandleMessage(message);
+        expect.fail("Should have thrown an error");
+      } catch (err) {
+        expect(err.message).to.include("unexpected S3 bucket");
+      }
+
+      expect(handleMessageStub.called).to.equal(false);
     });
 
     it("should handle invalid JSON in message body", async () => {

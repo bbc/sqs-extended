@@ -46,14 +46,39 @@ export class S3Handler {
     );
   }
 
+  private validateDownloadLocation(key: string, bucket: string): void {
+    if (bucket !== this.bucket) {
+      throw new S3OperationError(
+        `Refusing to download from unexpected S3 bucket (expected: ${this.bucket}, received: ${bucket})`,
+        {
+          operation: "download",
+          key,
+          bucket,
+        },
+      );
+    }
+
+    if (this.prefix && !key.startsWith(this.prefix)) {
+      throw new S3OperationError(
+        `Refusing to download S3 object outside configured prefix (prefix: ${this.prefix}, key: ${key})`,
+        {
+          operation: "download",
+          key,
+          bucket,
+        },
+      );
+    }
+  }
+
   /**
    * Download and parse a JSON payload from S3
    * @param key The S3 key to download
-   * @param bucket Optional bucket override
+   * @param bucket Optional bucket from message metadata. Must match the configured bucket.
    * @returns The parsed JSON payload
    */
   async download(key: string, bucket?: string): Promise<any> {
     const targetBucket = bucket || this.bucket;
+    this.validateDownloadLocation(key, targetBucket);
 
     return withErrorHandling(
       async () => {

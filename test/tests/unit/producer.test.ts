@@ -32,8 +32,8 @@ describe("SQSExtendedProducer", () => {
     producerCreateStub = sinon.stub(Producer, "create").returns(producerStub);
 
     sinon.stub(S3Client.prototype);
-    sinon.stub(S3Handler.prototype, "upload").callsFake(async (payload) => {
-      return s3HandlerStub.upload(payload);
+    sinon.stub(S3Handler.prototype, "upload").callsFake(async (payload, customKey) => {
+      return s3HandlerStub.upload(payload, customKey);
     });
   });
 
@@ -104,6 +104,7 @@ describe("SQSExtendedProducer", () => {
 
       expect(s3HandlerStub.upload.calledOnce).to.be.true;
       expect(s3HandlerStub.upload.firstCall.args[0]).to.deep.equal(largeMessage.body);
+      expect(s3HandlerStub.upload.firstCall.args[1]).to.equal(undefined);
 
       expect(producerStub.send.calledOnce).to.be.true;
       const sentMessage = producerStub.send.firstCall.args[0] as Message;

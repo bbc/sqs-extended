@@ -2,7 +2,6 @@ import { Producer } from "sqs-producer";
 import { S3Client } from "@aws-sdk/client-s3";
 import { SQSClient } from "@aws-sdk/client-sqs";
 import type { ProducerOptions } from "sqs-producer";
-import { v4 as uuidv4 } from "uuid";
 
 import { S3Handler } from "./handler.js";
 import { ExtendedOptions, ExtendedMessage } from "./types.js";
@@ -62,9 +61,7 @@ export class SQSExtendedProducer {
     });
 
     if (transformResult.s3Content) {
-      const s3Key = uuidv4();
-
-      await this.s3Handler.upload(body, s3Key);
+      const s3Key = await this.s3Handler.upload(body);
 
       const formattedS3Key = `(${this.s3Handler.bucket})${s3Key}`;
 
