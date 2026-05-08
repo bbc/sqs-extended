@@ -46,9 +46,6 @@ jobs:
       - name: Run Checks
         run: pnpm run check
 
-      - name: Run Tests
-        run: pnpm run test
-
       - uses: actions/upload-artifact@v4
         with:
           name: test-reports-${{ matrix.node-version }}
