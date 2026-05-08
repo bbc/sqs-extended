@@ -1,9 +1,7 @@
-# Security Policy
+# Security Policy 
 
-## Reporting a Vulnerability
+The BBC's full responsible disclosure policy can be found at https://www.bbc.com/backstage/security-disclosure-policy/. This page provides further details around whether this repository is in scope of this responsible disclosure process.  
 
-Our full security policy and vulnerability reporting procedure is documented on [this external website](https://www.bbc.com/backstage/security-disclosure-policy/#reportingavulnerability).
+### Scope 
 
-Please note that this is a general BBC process. Communication will not be direct with the team responsible for this repo.
-
-If you would like to, you can also open an issue in this repo regarding your disclosure, but please never share any details of the vulnerability in the GitHub issue.
+This repository is not in scope of the BBC's responsible disclosure process. This is due to the library still being in development and not recommended for production use.
