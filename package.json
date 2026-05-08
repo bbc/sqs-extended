@@ -53,6 +53,7 @@
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run test",
     "generate-docs": "typedoc"
   },
