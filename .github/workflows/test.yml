@@ -43,7 +43,10 @@ jobs:
       - name: Install Node Modules
         run: pnpm i
 
-      - name: Run Tests and Linting
+      - name: Run Checks
+        run: pnpm run check
+
+      - name: Run Tests
         run: pnpm run test
 
       - uses: actions/upload-artifact@v4

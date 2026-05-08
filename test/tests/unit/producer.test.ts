@@ -1,5 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "mocha";
-import { expect } from "chai";
+import { describe, it, beforeEach, afterEach, expect } from "vitest";
 import sinon from "sinon";
 import { Producer, Message } from "sqs-producer";
 import { S3Client } from "@aws-sdk/client-s3";

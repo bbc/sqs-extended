@@ -1,6 +1,6 @@
 # sqs-extended
 
-[![NPM downloads](https://img.shields.io/npm/dm/sqs-extended.svg?style=flat)](https://npmjs.org/package/sqs-extended)
+[![NPM downloads](https://img.shields.io/npm/dm/@bbc/sqs-extended.svg?style=flat)](https://npmjs.org/package/@bbc/sqs-extended)
 [![Build Status](https://github.com/bbc/sqs-extended/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/bbc/sqs-extended/actions/workflows/test.yml)
 
 A lightweight wrapper around [sqs-consumer](https://github.com/bbc/sqs-consumer) and [sqs-producer](https://github.com/bbc/sqs-producer) that extends the functionality of the libraries to enable handling large SQS payloads by offloading message bodies to S3 automatically.
